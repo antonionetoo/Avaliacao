@@ -1,8 +1,8 @@
 import os
 from helpjson import *
 
-#os.system('wget ')
-
+os.system('wget -O images.zip https://www.dropbox.com/s/057aap4paild1zn/images_id.zip?dl=1')
+os.system('unzip images.zip')
 
 data = get_json('data_small.json')
 data2 = []

@@ -1,5 +1,6 @@
 from tkinter import *
-from tkFileDialog import *
+#from tkFileDialog import *
+from tkinter import filedialog
 
 from PIL import ImageTk, Image
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -148,25 +149,43 @@ def enter(event):
 
     load_information()
 
-def build_number_to_positions():
+def build_number_to_positions(data):
     k = -1
     for i, d in enumerate(data):
-        for j, r in enumerate(d['regions']):
+        for j, _ in enumerate(d['regions']):
             k += 1
             number_to_positions[k] = [i, j]
 
 def save():
-    f = tkFileDialog.asksaveasfile(mode='w', defaultextension=".txt")
-    if f is None: # asksaveasfile return `None` if dialog closed with "cancel".
+    f = filedialog.asksaveasfile(mode='w', defaultextension=".json")
+    if f is None:
         return
-    text2save = str(text.get(1.0, END)) # starts from `1.0`, not `0.0`
-    f.write(text2save)
-    f.close() # `()` was missing.
+        
+    json.dump(data, f)
+    f.close()
+
+def file_open():
+    # the filetype mask (default is all files)
+    mask = \
+    [("Arquivos json","*.json")]
+    f = filedialog.askopenfile(filetypes=mask, mode='r')
+    global data
+    data = json.load(f)
+    build_number_to_positions(data)
+    load_information()
+    f.close
 
 window = Tk()
 
 btn_previous = Button(window, text = 'Anterior', command = previous_example)
 btn_previous.grid(row = 21, column = 0)
+
+lb_referencia_deanon = Label(window, text = 'Exemplo nº')
+lb_referencia_deanon.grid(row = 21, column = 1, sticky = E)
+
+txt_num_exemplo = Entry(window, width = 10)
+txt_num_exemplo.grid(row = 21, column = 2, sticky = W)
+txt_num_exemplo.bind('<Return>', enter)
 
 btn_next = Button(window, text = 'Próximo', command = next_instance)
 btn_next.grid(row = 21, column = 4)
@@ -207,15 +226,11 @@ lb_predita_ln.grid(row = 6, column = 5, columns = 2)
 text_observacao = Text(window, height = 15)
 text_observacao.grid(row = 7, column = 5, columnspan = 2, rowspan = 10, sticky = W+E)
 
-lb_referencia_deanon = Label(window, width = 50, text = 'Exemplo nº')
-lb_referencia_deanon.grid(row = 17, column = 5, sticky = E)
-
-txt_num_exemplo = Entry(window)
-txt_num_exemplo.grid(row = 17, column = 6)
-txt_num_exemplo.bind('<Return>', enter)
-
 btn_previous = Button(window, text = 'Salvar', command = save)
-btn_previous.grid(row = 18, column = 5)
+btn_previous.grid(row = 21, column = 5)
+
+btn_previous = Button(window, text = 'Abrir', command = file_open)
+btn_previous.grid(row = 21, column = 6)
 
 def on_closing():
   window.quit()
@@ -224,9 +239,7 @@ def on_closing():
 
 window.protocol('WM_DELETE_WINDOW', on_closing)
 
-data = load_json('data_eval.json')
-build_number_to_positions()
-
-load_information()
-
+#data = load_json('data_eval.json')
+#build_number_to_positions()
+#load_information()
 window.mainloop()

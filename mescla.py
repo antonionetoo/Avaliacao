@@ -1,7 +1,22 @@
+import os
 from helpjson import *
 
+path_file = ''
+if os.path.isfile('data_eval.json'):
+    path_file = 'data_eval.json'
+else:
+    path_file = 'data_small.json'
 
-data = get_json('data_small.json')
+file  = get_json(path_file)
+model = ''
+
+if 'model' in file:
+    data = file['data']
+    model = file['model']
+else:
+    data = file
+    model = 'Não identificado'
+
 data2 = []
 for d in data:
     ad = False
@@ -29,5 +44,6 @@ for d in data:
     if len(regions) > 0 :
         d['regions'] = regions
         data2.append(d)
-            
-save_json('data_eval.json', data2)
+
+new_data = {'model':model, 'data':data2}
+save_json('data_eval.json', new_data)

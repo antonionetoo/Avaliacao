@@ -12,6 +12,7 @@ import matplotlib.patches as mpatches
 
 from helpjson import *
 from tkinter import ttk
+from tkinter import messagebox
 
 options_evaluate     = ['Correto', 'Incorreto', 'Parcialmente Correto']
 options_combo_ref_ln = ['Correto', 'Ignorar']
@@ -29,16 +30,17 @@ def next_instance():
     save_observation()
 
     global index 
-    index += 1
-
-    load_information()
+    if index < len(number_to_positions) - 1:
+        index += 1    
+        load_information()
 
 def previous_example():
     save_observation()
 
     global index
-    index -= 1
-    load_information()
+    if index > 0:
+        index -= 1
+        load_information()
 
 def curret_region():
     i = number_to_positions[index][0]
@@ -81,7 +83,6 @@ def load_phrases(region):
     load_phrase(txt_referencia_deanon, region, 'ln_ref_anon')
     load_phrase(txt_predita_ln, region, 'ln_pred')
 
-    #load_phrase(text_observacao, region, 'ln_observacao')
     text_observacao.delete(1.0, END)
     try:
         text_observacao.insert(END, region['phrase']['ln']['ln_observacao'])
@@ -89,10 +90,11 @@ def load_phrases(region):
         text_observacao.insert(END, '')
 
 def load_combo(key, region, combo, values, default = ''):
-    if key in region:
+    if key in region['phrase']['ln']:
         option = [k for k, v in enumerate(values) if v == region['phrase']['ln'][key]]
         if len(option) == 0 :
             region['phrase']['ln'][key] = None
+            combo.set(default)
         else:
             combo.current(option[0])
     else:
@@ -144,6 +146,13 @@ def enter(event):
     save_observation()
 
     n_instance = int(txt_num_exemplo.get())
+
+    try:
+        number_to_positions[n_instance]
+    except KeyError:
+        messagebox.showinfo("Erro", "Exemplo não encontrado")
+        return
+
     global index
     index = n_instance
 
@@ -155,26 +164,43 @@ def build_number_to_positions(data):
         for j, _ in enumerate(d['regions']):
             k += 1
             number_to_positions[k] = [i, j]
+    
+    global index
+    index = 0
 
-def save():
+def save_file():
     f = filedialog.asksaveasfile(mode='w', defaultextension=".json")
     if f is None:
         return
-        
-    json.dump(data, f)
+
+    save_observation()
+    global data
+    new_data = {'data': data, 'model': txt_modelo.get()}
+    json.dump(new_data, f)
     f.close()
 
 def file_open():
-    # the filetype mask (default is all files)
-    mask = \
-    [("Arquivos json","*.json")]
+    mask = [("Arquivos json","*.json")]
     f = filedialog.askopenfile(filetypes=mask, mode='r')
+
+    if f == None:
+        return 
+    
     global data
-    data = json.load(f)
+    file = json.load(f)
+    f.close()
+
+    txt_modelo.configure(state = NORMAL)
+
+    txt_modelo.delete(0, END)
+    txt_modelo.insert(0, file['model'])
+
+    txt_modelo.configure(state = 'readonly')
+
+    data = file['data']
     build_number_to_positions(data)
     load_information()
-    f.close
-
+    
 window = Tk()
 
 btn_previous = Button(window, text = 'Anterior', command = previous_example)
@@ -191,55 +217,58 @@ btn_next = Button(window, text = 'Próximo', command = next_instance)
 btn_next.grid(row = 21, column = 4)
 
 lb_referencia_ln = Label(window, width = 50, text = 'Referência LN')
-lb_referencia_ln.grid(row = 0, column = 5)
+lb_referencia_ln.grid(row = 0, column = 5, columnspan = 2)
 
 txt_referencia_ln = Entry(window)
-txt_referencia_ln.grid(row = 1, column = 5, sticky = W+E)
+txt_referencia_ln.grid(row = 1, column = 5, sticky = W+E, columnspan = 2)
 
 combo_referencia_ln = ttk.Combobox(window, values = options_combo_ref_ln, state="readonly")
-combo_referencia_ln.grid(row = 1, column = 6)
+combo_referencia_ln.grid(row = 1, column = 7)
 combo_referencia_ln.bind("<<ComboboxSelected>>", change_combo_ref_ln)
 
 lb_referencia_deanon = Label(window, width = 50, text = 'Desanonimizada a partir da AMR de referência')
-lb_referencia_deanon.grid(row = 2, column = 5)
+lb_referencia_deanon.grid(row = 2, column = 5, columnspan = 2)
 
 txt_referencia_deanon = Entry(window)
-txt_referencia_deanon.grid(row = 3, column = 5, sticky = W+E)
+txt_referencia_deanon.grid(row = 3, column = 5, sticky = W+E, columnspan = 2)
 
 combo_referencia_deanon = ttk.Combobox(window, values=options_evaluate, state="readonly")
-combo_referencia_deanon.grid(row = 3, column = 6)
+combo_referencia_deanon.grid(row = 3, column = 7)
 combo_referencia_deanon.bind("<<ComboboxSelected>>", change_combo_referencia_deanon)
 
 lb_predita_ln = Label(window, width = 50, text = 'Predita modelo transformada em LN')
-lb_predita_ln.grid(row = 4, column = 5)
+lb_predita_ln.grid(row = 4, column = 5, columnspan = 2)
 
 txt_predita_ln = Entry(window)
-txt_predita_ln.grid(row = 5, column = 5, sticky = W+E)
+txt_predita_ln.grid(row = 5, column = 5, sticky = W+E, columnspan = 2)
 
 combo_predita_ln = ttk.Combobox(window, values=options_evaluate, state="readonly")
-combo_predita_ln.grid(row = 5, column = 6)
+combo_predita_ln.grid(row = 5, column = 7)
 combo_predita_ln.bind("<<ComboboxSelected>>", change_combo_predita_ln)
 
 lb_predita_ln = Label(window, width = 50, text = 'Observações')
-lb_predita_ln.grid(row = 6, column = 5, columns = 2)
+lb_predita_ln.grid(row = 6, column = 5, columns = 3)
 
 text_observacao = Text(window, height = 15)
-text_observacao.grid(row = 7, column = 5, columnspan = 2, rowspan = 10, sticky = W+E)
+text_observacao.grid(row = 7, column = 5, columnspan = 3, rowspan = 10, sticky = W)
 
-btn_previous = Button(window, text = 'Salvar', command = save)
-btn_previous.grid(row = 21, column = 5)
+lb_modelo = Label(window, text = 'Modelo')
+lb_modelo.grid(row = 17, column = 6, sticky = E)
 
-btn_previous = Button(window, text = 'Abrir', command = file_open)
-btn_previous.grid(row = 21, column = 6)
+txt_modelo = Entry(window, state = "readonly")
+txt_modelo.grid(row = 17, column = 7, sticky = W)
+
+btn_previous = Button(window, text = 'Salvar Arquivo', command = save_file)
+btn_previous.grid(row = 17, column = 5)
+
+btn_previous = Button(window, text = 'Abrir Arquivo', command = file_open)
+btn_previous.grid(row = 17, column = 6, sticky = W)
 
 def on_closing():
   window.quit()
   window.destroy()
-  save_json('data_eval.json', data)
 
+window.title("Interface de avaliação")
 window.protocol('WM_DELETE_WINDOW', on_closing)
 
-#data = load_json('data_eval.json')
-#build_number_to_positions()
-#load_information()
 window.mainloop()

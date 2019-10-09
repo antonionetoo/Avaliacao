@@ -14,7 +14,6 @@ import matplotlib.patches as mpatches
 from tkinter import ttk
 from tkinter import messagebox
 
-
 class TelaAvaliacao():
     def __init__(self, controller):
         self.window = Tk()

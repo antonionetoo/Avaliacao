@@ -22,6 +22,9 @@ number_to_positions = dict()
 global index
 index = 0
 
+global dir_file
+dir_file = None
+
 def save_observation():
     region = curret_region()
     region['phrase']['ln']['ln_observacao'] = text_observacao.get("1.0", END)
@@ -169,7 +172,11 @@ def build_number_to_positions(data):
     index = 0
 
 def save_file():
-    f = filedialog.asksaveasfile(mode='w', defaultextension=".json")
+    global dir_file
+    dir_split = dir_file.split('/')
+
+    f = filedialog.asksaveasfile(mode='w', initialdir = '/'.join(dir_split[0:len(dir_split) - 1]), 
+            initialfile = dir_split[-1], defaultextension = '.json')
     if f is None:
         return
 
@@ -188,6 +195,10 @@ def file_open():
     
     global data
     file = json.load(f)
+
+    global dir_file
+    dir_file = f.name
+
     f.close()
 
     txt_modelo.configure(state = NORMAL)

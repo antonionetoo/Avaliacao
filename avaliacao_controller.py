@@ -4,6 +4,7 @@ from avaliacao_view import TelaAvaliacao
 from tkinter import filedialog
 from tkinter import *
 from helpjson import *
+from tkinter import messagebox
 
 class ControllerAvalicao():
 
@@ -14,7 +15,7 @@ class ControllerAvalicao():
     def change_combo_ref_ln(self, event):
         value = self.view.combo_referencia_ln.get()
 
-        region = model.curret_region()
+        region = self.model.curret_region()
         region['phrase']['ln']['ln_ref_eval'] = value
 
         if value == 'Ignorar':
@@ -32,27 +33,25 @@ class ControllerAvalicao():
     
     def change_combo_referencia_deanon(self, event):
         region = self.model.curret_region()
-        region['phrase']['ln']['ln_ref_anon_eval'] = combo_referencia_deanon.get()    
+        region['phrase']['ln']['ln_ref_anon_eval'] = self.view.combo_referencia_deanon.get()    
 
     def change_combo_predita_ln(self, event):
         region = self.model.curret_region()
-        region['phrase']['ln']['ln_pred_eval'] = combo_predita_ln.get()    
+        region['phrase']['ln']['ln_pred_eval'] = self.view.combo_predita_ln.get()    
 
     def enter(self, event):
-        save_observation()
+        self.model.save_observation(self.view.txt_observacao.get("1.0", END))
 
-        n_instance = int(txt_num_exemplo.get())
+        n_instance = int(self.view.txt_num_exemplo.get())
 
         try:
-            number_to_positions[n_instance]
+            self.model.index = n_instance
+            self.model.curret_region()
         except KeyError:
             messagebox.showinfo("Erro", "Exemplo não encontrado")
             return
 
-        global index
-        index = n_instance
-
-        load_information()
+        self.load_informations()
 
     def save_file(self):
         global dir_file
@@ -76,16 +75,11 @@ class ControllerAvalicao():
         if f == None:
             return 
         
-        global data
         file = json.load(f)
-
-        global dir_file
         dir_file = f.name
-
         f.close()
         
         self.view.txt_modelo.configure(state = NORMAL)
-
         self.view.txt_modelo.delete(0, END)
         self.view.txt_modelo.insert(0, file['model'])
 
@@ -93,25 +87,52 @@ class ControllerAvalicao():
 
         data = file['data']
         self.model.build_number_to_positions(data)
-        ln_ref, ln_ref_anon, ln_pred, ln_pred, ln_observacao, ln_ref_eval, ln_ref_anon_eval, ln_pred_eval, index = self.model.load_information()
+        self.load_informations()
     
+    def load_phrase(self, txt, value):
+        txt.delete(0, END)
+        txt.insert(0, value)
+
+    def load_phrases(self):
+        ln_ref, ln_ref_anon, ln_pred, ln_observacao = self.model.load_phrases()
+        self.load_phrase(self.view.txt_referencia_ln, ln_ref)
+        self.load_phrase(self.view.txt_referencia_deanon, ln_ref_anon)
+        self.load_phrase(self.view.txt_predita_ln, ln_pred)
+
+        self.view.txt_observacao.delete(1.0, END)
+        try:
+            self.view.txt_observacao.insert(END, ln_observacao)
+        except KeyError:
+            self.view.txt_observacao.insert(END, '')
+        
+    def load_combos(self):
+        ln_ref_eval, ln_ref_anon_eval, ln_pred_eval = self.model.load_combos()
+        self.view.combo_referencia_deanon.set(ln_ref_anon_eval)
+        self.view.combo_predita_ln.set(ln_pred_eval)
+
+        self.view.combo_referencia_ln.set(ln_ref_eval)
+        self.change_combo_ref_ln(None)
+
+    def load_informations(self):
+        self.load_phrases()
+        self.load_combos()
+        self.load_phrase(self.view.txt_num_exemplo, self.model.current_index())
+        
     def start(self):
         self.view.exibi_interface()
     
     def previous_example(self):
-        value = self.view.text_observacao.get("1.0", END)
-        self.model.save_observation(value)
-
+        self.model.save_observation(self.view.txt_observacao.get("1.0", END))
         self.model.previous_example()
+
+        self.load_informations()
     
     def next_instance(self):
-        save_observation()
+        self.model.save_observation(self.view.txt_observacao.get("1.0", END))
+        self.model.next_instance()
 
-        global index 
-        if index < len(number_to_positions) - 1:
-            index += 1    
-            load_information()
-
+        self.load_informations()
+        
 if __name__ == '__main__':
     controller = ControllerAvalicao()
     controller.start()

@@ -1,5 +1,4 @@
 
-
 class AvaliacaoModel():
     
     def __init__(self):
@@ -12,19 +11,15 @@ class AvaliacaoModel():
         region = self.curret_region()
         region['phrase']['ln']['ln_observacao'] = value    
 
-    def previous_example(self, value):
+    def previous_example(self):
         if self.index > 0:
             self.index -= 1
-            load_information()
 
     def curret_region(self):
         i = self.number_to_positions[self.index][0]
         j = self.number_to_positions[self.index][1]
 
         return self.data[i]['regions'][j]
-
-    def load_json(self, name_data):
-        return get_json(name_data)
 
     def load_image(self, region):
         bbox = [region['x'], region['y'], region['width'], region['height']]
@@ -58,7 +53,7 @@ class AvaliacaoModel():
         except KeyError:
             ln_observacao = ''
 
-        return ln_ref, ln_ref_anon, ln_pred, ln_pred, ln_observacao
+        return ln_ref, ln_ref_anon, ln_pred, ln_observacao
 
     def load_combo(self, key, default = ''):
         if key in self.curret_region()['phrase']['ln']:
@@ -72,7 +67,7 @@ class AvaliacaoModel():
             return default
 
     def load_combos(self):
-        ln_ref_eval      = self.load_combo('ln_ref_eval')
+        ln_ref_eval      = self.load_combo('ln_ref_eval', 'Correto')
         ln_ref_anon_eval = self.load_combo('ln_ref_anon_eval')
         ln_pred_eval     = self.load_combo('ln_pred_eval')
 
@@ -80,10 +75,10 @@ class AvaliacaoModel():
 
     def load_information(self):       
         #self.load_image(region)
-        ln_ref, ln_ref_anon, ln_pred, ln_pred, ln_observacao = self.load_phrases()
+        ln_ref, ln_ref_anon, ln_pred, ln_observacao = self.load_phrases()
         ln_ref_eval, ln_ref_anon_eval, ln_pred_eval = self.load_combos()
 
-        return ln_ref, ln_ref_anon, ln_pred, ln_pred, ln_observacao, ln_ref_eval, ln_ref_anon_eval, ln_pred_eval, self.index
+        return ln_ref, ln_ref_anon, ln_pred, ln_observacao, ln_ref_eval, ln_ref_anon_eval, ln_pred_eval, self.index
     
     def build_number_to_positions(self, data):
         self.data = data
@@ -94,3 +89,10 @@ class AvaliacaoModel():
                 self.number_to_positions[k] = [i, j]
         
         self.index = 0
+    
+    def next_instance(self):
+        if self.index < len(self.number_to_positions) - 1:
+            self.index += 1    
+    
+    def current_index(self):
+        return self.index

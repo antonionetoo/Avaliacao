@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 from tkinter import ttk
-from tkinter import messagebox
 
 class TelaAvaliacao():
     def __init__(self, controller):
@@ -72,8 +71,8 @@ class TelaAvaliacao():
         self.lb_predita_ln = Label(self.window, width = 50, text = 'Observações')
         self.lb_predita_ln.grid(row = 6, column = 5, columns = 3)
 
-        self.text_observacao = Text(self.window, height = 15)
-        self.text_observacao.grid(row = 7, column = 5, columnspan = 3, rowspan = 10, sticky = W)
+        self.txt_observacao = Text(self.window, height = 15)
+        self.txt_observacao.grid(row = 7, column = 5, columnspan = 3, rowspan = 10, sticky = W)
     
     def modelo(self):
         self.lb_modelo = Label(self.window, text = 'Modelo')

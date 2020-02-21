@@ -3,40 +3,51 @@ import skimage.io as io
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import json
+from collections import OrderedDict 
 
 class AvaliacaoModel():
     
     def __init__(self):
         self.data = None
+        self.current_key = None
         self.number_to_positions = dict()
-        self.index = 0
+
+        self.key_to_index = dict()
+        self.index_to_key = dict()
+        self.index        = 0
+
         self.dir_file = None
     
     def build_number_to_positions(self, data):
-        self.data = data
-        k = -1
-        for i, d in enumerate(data):
-            for j, _ in enumerate(d['regions']):
-                k += 1
-                self.number_to_positions[k] = [i, j]
+        self.data = OrderedDict(data)
+
+        for i, k in enumerate(data.keys()):
+            self.key_to_index[k] = i
+            self.index_to_key[i] = k
         
-        self.index = 0
+        self.current_key = next(iter(self.data))
+        self.index       = 0
 
     def load_phrase(self, key):
         return self.curret_region()['phrase']['ln'][key]
 
     def load_phrases(self):
-        ln_ref      = self.load_phrase('ln_ref')
-        ln_ref_anon = self.load_phrase('ln_ref_anon')
-        ln_pred     = self.load_phrase('ln_pred')
+        region = self.curret_region()
+
+        reference_nl      = region['phrase']['reference']
+        baseline          = region['phrase']['baseline']
+        predicted_model1  = region['phrase']['anon']
+        predicter_model2  = region['phrase']['anonc']
 
         ln_observacao = None
+        """
         try:
             ln_observacao = self.load_phrase('ln_observacao')
         except KeyError:
             ln_observacao = ''
+        """
 
-        return ln_ref, ln_ref_anon, ln_pred, ln_observacao
+        return reference_nl, baseline, predicted_model1, predicter_model2, ln_observacao
 
     def load_combo(self, key, default = ''):
         if key in self.curret_region()['phrase']['ln']:
@@ -71,7 +82,7 @@ class AvaliacaoModel():
         region = self.curret_region()
 
         bbox = [region['x'], region['y'], region['width'], region['height']]
-        path_image = 'images_id/{}.jpg'.format(region['image_id'])
+        path_image = 'images/{}.jpg'.format(self.current_key)
 
         plt.close('all')
 
@@ -98,21 +109,24 @@ class AvaliacaoModel():
 
     def save_observation(self, value):
         region = self.curret_region()
-        region['phrase']['ln']['ln_observacao'] = value    
+        region['phrase']['observacao'] = value
 
     def curret_region(self):
-        i = self.number_to_positions[self.index][0]
-        j = self.number_to_positions[self.index][1]
-
-        return self.data[i]['regions'][j]
+        return self.data[self.current_key]
+    
+    def go_to_instance(self, number_instance):
+        assert number_instance >= 0 and number_instance <= len(self.data)-1
+    
+        self.current_key = list(self.data.keys())[number_instance]
+        self.index = number_instance
 
     def previous_example(self):
-        if self.index > 0:
-            self.index -= 1
+        self.go_to_instance(self.index - 1)
 
     def next_instance(self):
-        if self.index < len(self.number_to_positions) - 1:
-            self.index += 1    
+        self.go_to_instance(self.index + 1)
     
     def current_index(self):
         return self.index
+    
+    

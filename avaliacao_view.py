@@ -7,7 +7,6 @@ class TelaAvaliacao():
         self.window = Tk()
         self.controller = controller
         self.options_evaluate     = ['Correto', 'Incorreto', 'Parcialmente Correto']
-        self.options_combo_ref_ln = ['Correto', 'Ignorar']
     
     def navegation(self):
         self.btn_previous = Button(self.window, text = 'Anterior', command = self.controller.previous_example)
@@ -24,58 +23,64 @@ class TelaAvaliacao():
         self.btn_next.grid(row = 21, column = 4)
     
     def reference(self):
-        self.lb_referencia_ln = Label(self.window, width = 50, text = 'Referência LN')
-        self.lb_referencia_ln.grid(row = 0, column = 5, columnspan = 2)
+        self.lb_reference = Label(self.window, width = 50, text = 'Referência LN')
+        self.lb_reference.grid(row = 0, column = 5, columnspan = 2)
 
-        self.txt_referencia_ln = Entry(self.window)
-        self.txt_referencia_ln.grid(row = 1, column = 5, sticky = constants.W + constants.E, columnspan = 2)
-
-        self.combo_referencia_ln = ttk.Combobox(self.window, values = self.options_combo_ref_ln, state="readonly")
-        self.combo_referencia_ln.grid(row = 1, column = 7)
-        self.combo_referencia_ln.bind("<<ComboboxSelected>>", self.controller.change_combo_ref_ln)
-
-    def deanon(self):
-        self.lb_referencia_deanon = Label(self.window, width = 50, text = 'Desanonimizada a partir da AMR de referência')
-        self.lb_referencia_deanon.grid(row = 2, column = 5, columnspan = 2)
-
-        self.txt_referencia_deanon = Entry(self.window)
-        self.txt_referencia_deanon.grid(row = 3, column = 5, sticky = constants.W + constants.E, columnspan = 2)
-
-        self.combo_referencia_deanon = ttk.Combobox(self.window, values=self.options_evaluate, state="readonly")
-        self.combo_referencia_deanon.grid(row = 3, column = 7)
-        self.combo_referencia_deanon.bind("<<ComboboxSelected>>", self.controller.change_combo_referencia_deanon)
+        self.txt_reference = Entry(self.window)
+        self.txt_reference.grid(row = 1, column = 5, sticky = constants.W + constants.E, columnspan = 2)
     
-    def predict(self):
-        self.lb_predita_ln = Label(self.window, width = 50, text = 'Predita modelo transformada em LN')
-        self.lb_predita_ln.grid(row = 4, column = 5, columnspan = 2)
+    def baseline(self):
+        self.lb_baseline = Label(self.window, width = 50, text = 'Baseline')
+        self.lb_baseline.grid(row = 2, column = 5, columnspan = 2)
 
-        self.txt_predita_ln = Entry(self.window)
-        self.txt_predita_ln.grid(row = 5, column = 5, sticky = constants.W + constants.E, columnspan = 2)
+        self.txt_baseline = Entry(self.window)
+        self.txt_baseline.grid(row = 3, column = 5, sticky = constants.W + constants.E, columnspan = 2)
 
-        self.combo_predita_ln = ttk.Combobox(self.window, values = self.options_evaluate, state="readonly")
-        self.combo_predita_ln.grid(row = 5, column = 7)
-        self.combo_predita_ln.bind("<<ComboboxSelected>>", self.controller.change_combo_predita_ln)
+    def model1(self):
+        self.lb_model1 = Label(self.window, width = 50, text = 'Modelo 1 (anon-1kk)')
+        self.lb_model1.grid(row = 4, column = 5, columnspan = 2)
 
+        self.txt_model1 = Entry(self.window)
+        self.txt_model1.grid(row = 5, column = 5, sticky = constants.W + constants.E, columnspan = 2)
+
+        self.check_model1 = ttk.Checkbutton(self.window, text = "Melhor que o baseline")
+        self.check_model1.grid(row = 5, column = 7)
+
+    def model2(self):
+        self.lb_model2 = Label(self.window, width = 50, text = 'Modelo 2 (anonc-1kk)')
+        self.lb_model2.grid(row = 6, column = 5, columnspan = 2)
+
+        self.txt_model2 = Entry(self.window)
+        self.txt_model2.grid(row = 7, column = 5, sticky = constants.W + constants.E, columnspan = 2)
+
+        self.check_model2 = ttk.Checkbutton(self.window, text = "Melhor que o baseline")
+        self.check_model2.grid(row = 7, column = 7)        
+    
+    def choose_better_model(self):
+        self.choose_better_model = Label(self.window, text = 'Melhor modelo:')
+        self.choose_better_model.config(font=(None, 12))
+
+        self.choose_better_model.grid(row = 8, column = 5)
+
+        option_model1 = ttk.Radiobutton(self.window, text="Modelo 1", value=1)
+        option_model1.grid(row = 8, column = 6)
+
+        option_model2 = ttk.Radiobutton(self.window, text="Modelo 2", value=2)
+        option_model2.grid(row = 8, column = 7)
+        
     def observation(self):
         self.lb_predita_ln = Label(self.window, width = 50, text = 'Observações')
-        self.lb_predita_ln.grid(row = 6, column = 5, columns = 3)
+        self.lb_predita_ln.grid(row = 9, column = 5, columns = 3)
 
         self.txt_observacao = Text(self.window, height = 15)
-        self.txt_observacao.grid(row = 7, column = 5, columnspan = 3, rowspan = 10, sticky = constants.W)
-    
-    def model(self):
-        self.lb_modelo = Label(self.window, text = 'Modelo')
-        self.lb_modelo.grid(row = 17, column = 6, sticky = constants.E)
-
-        self.txt_modelo = Entry(self.window, state = "readonly")
-        self.txt_modelo.grid(row = 17, column = 7, sticky = constants.W)
+        self.txt_observacao.grid(row = 10, column = 5, columnspan = 3, rowspan = 10, sticky = constants.W)
 
     def save_and_open_file(self):
         self.btn_salvar_arquivo = Button(self.window, text = 'Salvar Arquivo', command = self.controller.save_file)
-        self.btn_salvar_arquivo.grid(row = 17, column = 5)
+        self.btn_salvar_arquivo.grid(row = 20, column = 5)
 
         self.btn_abrir_arquivo = Button(self.window, text = 'Abrir Arquivo', command = self.controller.file_open)
-        self.btn_abrir_arquivo.grid(row = 17, column = 6, sticky = constants.W)
+        self.btn_abrir_arquivo.grid(row = 20, column = 6, sticky = constants.W)
     
     def plot_image(self, fig):
         canvas = FigureCanvasTkAgg(fig, master = self.window)
@@ -89,10 +94,13 @@ class TelaAvaliacao():
     def show_interface(self):
         self.navegation()
         self.reference()
-        self.deanon()
-        self.predict()
+        self.baseline()
+
+        self.model1()
+        self.model2()
+        self.choose_better_model()
+        
         self.observation()
-        self.model()
         self.save_and_open_file()
 
         self.window.title("Interface de avaliação")

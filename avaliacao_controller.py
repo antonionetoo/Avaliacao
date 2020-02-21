@@ -39,18 +39,14 @@ class ControllerAvalicao():
         region['phrase']['ln']['ln_pred_eval'] = self.view.combo_predita_ln.get()    
 
     def enter(self, event):
+        self.model.save_observation(self.view.txt_observacao.get("1.0", constants.END))
+        
         try:
-            self.model.save_observation(self.view.txt_observacao.get("1.0", constants.END))
-        except KeyError:
-            pass
-
-        n_instance = int(self.view.txt_num_exemplo.get())
-
-        try:
-            self.model.index = n_instance
-            self.model.curret_region()
-        except KeyError:
+            n_instance = int(self.view.txt_num_exemplo.get())
+            self.model.go_to_instance(n_instance)
+        except:
             messagebox.showinfo("Erro", "Exemplo não encontrado")
+            self.load_phrase(self.view.txt_num_exemplo, self.model.index)
             return
 
         self.load_informations()
@@ -75,15 +71,16 @@ class ControllerAvalicao():
         if f == None:
             return 
         
-        file = self.model.load_json(f)        
+        data = self.model.load_json(f)        
         
+        """
         self.view.txt_modelo.configure(state = constants.NORMAL)
         self.view.txt_modelo.delete(0, constants.END)
         self.view.txt_modelo.insert(0, file['model'])
 
         self.view.txt_modelo.configure(state = 'readonly')
+        """
 
-        data = file['data']
         self.model.build_number_to_positions(data)
         self.load_informations()
     
@@ -92,7 +89,19 @@ class ControllerAvalicao():
         txt.insert(0, value)
 
     def load_phrases(self):
-        ln_ref, ln_ref_anon, ln_pred, ln_observacao = self.model.load_phrases()
+        reference_nl, baseline, predicted_model1, predicter_model2, ln_observacao = self.model.load_phrases()
+
+        self.load_phrase(self.view.txt_reference, reference_nl)
+        self.load_phrase(self.view.txt_baseline, baseline)
+        self.load_phrase(self.view.txt_model1, predicted_model1)
+        self.load_phrase(self.view.txt_model2, predicter_model2)
+        #self.load_phrase(self.view.txt_baseline, baseline)
+
+        #self.load_phrase(self.view.txt_model1, predicted_model1)
+        #self.load_phrase(self.view.txt_model1, predicted_model1)
+        #self.load_phrase(self.view.txt_model1, predicted_model1)
+
+        """
         self.load_phrase(self.view.txt_referencia_ln, ln_ref)
         self.load_phrase(self.view.txt_referencia_deanon, ln_ref_anon)
         self.load_phrase(self.view.txt_predita_ln, ln_pred)
@@ -102,6 +111,7 @@ class ControllerAvalicao():
             self.view.txt_observacao.insert(constants.END, ln_observacao)
         except KeyError:
             self.view.txt_observacao.insert(constants.END, '')
+        """
         
     def load_combos(self):
         ln_ref_eval, ln_ref_anon_eval, ln_pred_eval = self.model.load_combos()
@@ -115,8 +125,7 @@ class ControllerAvalicao():
         self.view.plot_image(self.model.load_image())
 
         self.load_phrases()
-        self.load_combos()
-        self.load_phrase(self.view.txt_num_exemplo, self.model.current_index())
+        self.load_phrase(self.view.txt_num_exemplo, self.model.index)
         
     def previous_example(self):
         self.model.save_observation(self.view.txt_observacao.get("1.0", constants.END))

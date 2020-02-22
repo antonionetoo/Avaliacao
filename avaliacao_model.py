@@ -38,16 +38,17 @@ class AvaliacaoModel():
         baseline          = region['phrase']['baseline']
         predicted_model1  = region['phrase']['anon']
         predicter_model2  = region['phrase']['anonc']
-
-        ln_observacao = None
-        """
+        
+        model1            = region['phrase']['model1'] 
+        model2            = region['phrase']['model2'] 
+        best_model        = region['phrase']['best_model'] 
+        
         try:
-            ln_observacao = self.load_phrase('ln_observacao')
+            observation  = region['phrase']['observacao']
         except KeyError:
-            ln_observacao = ''
-        """
-
-        return reference_nl, baseline, predicted_model1, predicter_model2, ln_observacao
+            observation  = ''
+        
+        return reference_nl, baseline, predicted_model1, predicter_model2, observation, model1, model2, best_model
 
     def load_combo(self, key, default = ''):
         if key in self.curret_region()['phrase']['ln']:
@@ -59,19 +60,6 @@ class AvaliacaoModel():
                 return value
         else:
             return default
-
-    def load_combos(self):
-        ln_ref_eval      = self.load_combo('ln_ref_eval', 'Correto')
-        ln_ref_anon_eval = self.load_combo('ln_ref_anon_eval')
-        ln_pred_eval     = self.load_combo('ln_pred_eval')
-
-        return ln_ref_eval, ln_ref_anon_eval, ln_pred_eval
-
-    def load_information(self):
-        ln_ref, ln_ref_anon, ln_pred, ln_observacao = self.load_phrases()
-        ln_ref_eval, ln_ref_anon_eval, ln_pred_eval = self.load_combos()
-
-        return ln_ref, ln_ref_anon, ln_pred, ln_observacao, ln_ref_eval, ln_ref_anon_eval, ln_pred_eval, self.index
 
     def draw_bbox(self, ax, bbox, edge_color='red', line_width =3):
         bbox_plot = mpatches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3],
@@ -109,10 +97,31 @@ class AvaliacaoModel():
 
     def save_observation(self, value):
         region = self.curret_region()
-        region['phrase']['observacao'] = value
+        
+        if value.endswith('\n\n'):
+            region['phrase']['observacao'] = value[0:len(value)-2]
+        else:
+            if value == '\n':
+                region['phrase']['observacao'] = ''
+            else:
+                region['phrase']['observacao'] = value
+    
+    def save_informations(self, model1, model2, best_model, observation):
+        self.save_observation(observation)
+        region = self.curret_region()
+        
+        region['phrase']['model1'] = model1
+        region['phrase']['model2'] = model2
+        region['phrase']['best_model'] = best_model
 
     def curret_region(self):
         return self.data[self.current_key]
+    
+    def go_to_key(self, key):
+        assert key in self.key_to_index
+        
+        self.index = self.key_to_index[key]
+        self.current_key = key
     
     def go_to_instance(self, number_instance):
         assert number_instance >= 0 and number_instance <= len(self.data)-1
@@ -121,12 +130,16 @@ class AvaliacaoModel():
         self.index = number_instance
 
     def previous_example(self):
-        self.go_to_instance(self.index - 1)
+        try:
+            self.go_to_instance(self.index - 1)
+        except:
+            pass
 
     def next_instance(self):
-        self.go_to_instance(self.index + 1)
-    
+        try:
+            self.go_to_instance(self.index + 1)
+        except:
+            pass
+            
     def current_index(self):
-        return self.index
-    
-    
+        return self.index    

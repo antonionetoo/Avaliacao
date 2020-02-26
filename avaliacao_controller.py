@@ -5,32 +5,28 @@ from tkinter import constants
 from tkinter import filedialog
 from tkinter import messagebox
 
-class ControllerAvalicao():
+class ControllerAvaliacao():
 
     def __init__(self):
         self.model = AvaliacaoModel()
         self.view = TelaAvaliacao(self)
 
     def enter_instance_number(self, event):
-        self.model.save_observation(self.view.txt_observacao.get("1.0", constants.END))
+        self.save_informations()
+        n_instance = int(self.view.txt_num_exemplo.get())
         
         try:
-            n_instance = int(self.view.txt_num_exemplo.get())
             self.model.go_to_instance(n_instance)
+            self.load_informations()
         except:
             messagebox.showinfo("Erro", "Exemplo não encontrado")
-            self.load_phrase(self.view.txt_num_exemplo, self.model.index)
-            return
 
-        self.load_informations()
-    
     def enter_identifier(self, event):
+        self.save_informations()
         key = self.view.txt_identifier.get()
         
         try:
-            self.save_informations()
             self.model.go_to_key(key)
-            
             self.load_informations()
         except:
             messagebox.showinfo("Erro", "Exemplo não encontrado")
@@ -45,7 +41,7 @@ class ControllerAvalicao():
             return
 
         self.save_informations()
-        self.model.save_json(self.model.data, f)
+        self.model.save_json(f)
 
     def file_open(self):
         mask = [("Arquivos json","*.json")]
@@ -54,17 +50,9 @@ class ControllerAvalicao():
         if f == None:
             return 
         
-        data = self.model.load_json(f)        
-        
-        """
-        self.view.txt_modelo.configure(state = constants.NORMAL)
-        self.view.txt_modelo.delete(0, constants.END)
-        self.view.txt_modelo.insert(0, file['model'])
+        self.model.load_json(f)
 
-        self.view.txt_modelo.configure(state = 'readonly')
-        """
-
-        self.model.build_number_to_positions(data)
+        self.model.build_number_to_positions()
         self.load_informations()
     
     def save_informations(self):
@@ -88,41 +76,20 @@ class ControllerAvalicao():
         self.load_phrase(self.view.txt_model2, predicter_model2)
         self.load_phrase(self.view.txt_identifier, self.model.current_key)
         
-        #try:
         self.view.txt_observacao.delete(1.0, constants.END)
         self.view.txt_observacao.insert(constants.END, observation)
         
-        self.view.model1 = model1
-        #model1, model2, best_model
-        #except KeyError:
-        #    self.view.txt_observacao.insert(constants.END, '')
+        self.view.better_model1.set(model1 or 0)
+        self.view.better_model2.set(model2 or 0)
+        self.view.best_model.set(best_model or 1)
         
-        #self.load_phrase(self.view.txt_baseline, baseline)
-
-        #self.load_phrase(self.view.txt_model1, predicted_model1)
-        #self.load_phrase(self.view.txt_model1, predicted_model1)
-        #self.load_phrase(self.view.txt_model1, predicted_model1)
-
-        """
-        self.load_phrase(self.view.txt_referencia_ln, ln_ref)
-        self.load_phrase(self.view.txt_referencia_deanon, ln_ref_anon)
-        self.load_phrase(self.view.txt_predita_ln, ln_pred)
-
-        self.view.txt_observacao.delete(1.0, constants.END)
-        try:
-            self.view.txt_observacao.insert(constants.END, ln_observacao)
-        except KeyError:
-            self.view.txt_observacao.insert(constants.END, '')
-        """
+        self.load_phrase(self.view.txt_num_exemplo, self.model.index)
 
     def load_informations(self):
         self.view.plot_image(self.model.load_image())
-
         self.load_phrases()
-        self.load_phrase(self.view.txt_num_exemplo, self.model.index)
         
     def previous_example(self):
-        self.save_informations()
         self.save_informations()
         self.model.previous_example()
 
@@ -130,14 +97,9 @@ class ControllerAvalicao():
     
     def next_instance(self):
         self.save_informations()
-        self.save_informations()
         self.model.next_instance()
 
         self.load_informations()
 
     def start(self):
         self.view.show_interface()
-        
-if __name__ == '__main__':
-    controller = ControllerAvalicao()
-    controller.start()

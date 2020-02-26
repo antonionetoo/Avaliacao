@@ -1,5 +1,5 @@
-from avaliacao_controller import ControllerAvalicao
+from avaliacao_controller import ControllerAvaliacao
 
 if __name__ == '__main__':
-    controller = ControllerAvalicao()
+    controller = ControllerAvaliacao()
     controller.start()

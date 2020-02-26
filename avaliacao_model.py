@@ -3,7 +3,6 @@ import skimage.io as io
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import json
-from collections import OrderedDict 
 
 class AvaliacaoModel():
     
@@ -18,18 +17,13 @@ class AvaliacaoModel():
 
         self.dir_file = None
     
-    def build_number_to_positions(self, data):
-        self.data = OrderedDict(data)
-
-        for i, k in enumerate(data.keys()):
+    def build_number_to_positions(self):
+        for i, k in enumerate(self.data.keys()):
             self.key_to_index[k] = i
             self.index_to_key[i] = k
         
         self.current_key = next(iter(self.data))
         self.index       = 0
-
-    def load_phrase(self, key):
-        return self.curret_region()['phrase']['ln'][key]
 
     def load_phrases(self):
         region = self.curret_region()
@@ -44,22 +38,11 @@ class AvaliacaoModel():
         best_model        = region['phrase']['best_model'] 
         
         try:
-            observation  = region['phrase']['observacao']
+            observation  = region['phrase']['observation']
         except KeyError:
             observation  = ''
         
         return reference_nl, baseline, predicted_model1, predicter_model2, observation, model1, model2, best_model
-
-    def load_combo(self, key, default = ''):
-        if key in self.curret_region()['phrase']['ln']:
-            value = self.curret_region()['phrase']['ln'][key]
-            if value == '' or value == None :
-                self.curret_region()['phrase']['ln'][key] = None
-                return default
-            else:
-                return value
-        else:
-            return default
 
     def draw_bbox(self, ax, bbox, edge_color='red', line_width =3):
         bbox_plot = mpatches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3],
@@ -85,26 +68,24 @@ class AvaliacaoModel():
         return fig
 
     def load_json(self, f):
-        file = json.load(f)
+        self.data = json.load(f)
         self.dir_file = f.name
         f.close()
-
-        return file
     
-    def save_json(self, new_data, f):
-        json.dump(new_data, f)
+    def save_json(self, f):
+        json.dump(self.data, f)
         f.close()
 
     def save_observation(self, value):
         region = self.curret_region()
         
         if value.endswith('\n\n'):
-            region['phrase']['observacao'] = value[0:len(value)-2]
+            region['phrase']['observation'] = value[0:len(value)-2]
         else:
             if value == '\n':
-                region['phrase']['observacao'] = ''
+                region['phrase']['observation'] = ''
             else:
-                region['phrase']['observacao'] = value
+                region['phrase']['observation'] = value
     
     def save_informations(self, model1, model2, best_model, observation):
         self.save_observation(observation)
@@ -140,6 +121,3 @@ class AvaliacaoModel():
             self.go_to_instance(self.index + 1)
         except:
             pass
-            
-    def current_index(self):
-        return self.index    

@@ -136,8 +136,6 @@ class TelaAvaliacao():
         self.save_and_open_file()
 
         self.window.title("Interface de avaliação")
-        self.window.geometry('1300x550') 
-
         self.window.protocol('WM_DELETE_WINDOW', self.on_closing)
         
         self.window.mainloop()

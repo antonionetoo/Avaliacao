@@ -48,10 +48,6 @@ class ControllerAvaliacao():
         self.model.build_number_to_positions()
         self.load_informations()
     
-    def value_to_option_combo(self, combo):
-        result = [i for i, o in enumerate(self.view.options_evaluate) if o == combo.get()]
-        return -1 if not result else result[0]
-    
     def save_informations(self):
         model1      = self.view.better_model1.get()
         model2      = self.view.better_model2.get()

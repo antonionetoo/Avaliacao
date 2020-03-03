@@ -1,6 +1,6 @@
 images.zip
 images_id/
 __pycache__/
-.vscode
 *.json
-.interface
+.*
+images/

@@ -32,16 +32,8 @@ class ControllerAvaliacao():
             messagebox.showinfo("Erro", "Exemplo não encontrado")
 
     def save_file(self):
-        dir_split = self.model.dir_file.split('/')
-        
-        f = filedialog.asksaveasfile(mode='w', initialdir = '/'.join(dir_split[0:len(dir_split) - 1]), 
-               initialfile = dir_split[-1], defaultextension = '.json')        
-
-        if f is None:
-            return
-
         self.save_informations()
-        self.model.save_json(f)
+        self.model.save_json()
 
     def file_open(self):
         mask = [("Arquivos json","*.json")]
@@ -50,10 +42,15 @@ class ControllerAvaliacao():
         if f == None:
             return 
         
-        self.model.load_json(f)
+        name_file = f.name
+        self.model.load_json(name_file)
 
         self.model.build_number_to_positions()
         self.load_informations()
+    
+    def value_to_option_combo(self, combo):
+        result = [i for i, o in enumerate(self.view.options_evaluate) if o == combo.get()]
+        return -1 if not result else result[0]
     
     def save_informations(self):
         model1      = self.view.better_model1.get()
@@ -61,7 +58,12 @@ class ControllerAvaliacao():
         best_model  = self.view.best_model.get()
         observation = self.view.txt_observacao.get("1.0", constants.END)
         
-        self.model.save_informations(model1, model2, best_model, observation)
+        option_baseline = self.view.combo_baseline.get()
+        option_model1   = self.view.combo_model1.get()
+        option_model2   = self.view.combo_model2.get()
+        
+        
+        self.model.save_informations(model1, model2, best_model, observation, option_baseline, option_model1, option_model2)
     
     def load_phrase(self, txt, value):
         txt.delete(0, constants.END)
@@ -81,9 +83,15 @@ class ControllerAvaliacao():
         
         self.view.better_model1.set(model1 or 0)
         self.view.better_model2.set(model2 or 0)
-        self.view.best_model.set(best_model or 1)
+        self.view.best_model.set(best_model or 0)
         
         self.load_phrase(self.view.txt_num_exemplo, self.model.index)
+        
+        option_baseline, option_model1, option_model2 = self.model.load_combos()
+        
+        self.view.combo_baseline.set(option_baseline)
+        self.view.combo_model1.set(option_model1)
+        self.view.combo_model2.set(option_model2)
 
     def load_informations(self):
         self.view.plot_image(self.model.load_image())

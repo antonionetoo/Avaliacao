@@ -2,6 +2,7 @@
 import skimage.io as io
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from helpjson import load_json, save_json
 import json
 
 class AvaliacaoModel():
@@ -15,7 +16,7 @@ class AvaliacaoModel():
         self.index_to_key = dict()
         self.index        = 0
 
-        self.dir_file = None
+        self.name_file = None
     
     def build_number_to_positions(self):
         for i, k in enumerate(self.data.keys()):
@@ -33,8 +34,8 @@ class AvaliacaoModel():
         predicted_model1  = region['phrase']['anon']
         predicter_model2  = region['phrase']['anonc']
         
-        model1            = region['phrase']['model1'] 
-        model2            = region['phrase']['model2'] 
+        model1            = region['phrase']['model1']
+        model2            = region['phrase']['model2']
         best_model        = region['phrase']['best_model'] 
         
         try:
@@ -43,6 +44,20 @@ class AvaliacaoModel():
             observation  = ''
         
         return reference_nl, baseline, predicted_model1, predicter_model2, observation, model1, model2, best_model
+    
+    def load_combos(self):
+        region = self.curret_region()
+        
+        if 'option_baseline' in region['phrase']:
+            option_baseline = region['phrase']['option_baseline']
+            option_model1   = region['phrase']['option_model1']
+            option_model2   = region['phrase']['option_model2']
+        else:
+            option_baseline = ''
+            option_model1   = ''
+            option_model2   = ''
+        
+        return option_baseline, option_model1, option_model2        
 
     def draw_bbox(self, ax, bbox, edge_color='red', line_width =3):
         bbox_plot = mpatches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3],
@@ -67,14 +82,12 @@ class AvaliacaoModel():
 
         return fig
 
-    def load_json(self, f):
-        self.data = json.load(f)
-        self.dir_file = f.name
-        f.close()
+    def load_json(self, name_file):
+        self.data = load_json(name_file)
+        self.name_file = name_file
     
-    def save_json(self, f):
-        json.dump(self.data, f)
-        f.close()
+    def save_json(self):
+        save_json(self.name_file, self.data)
 
     def save_observation(self, value):
         region = self.curret_region()
@@ -87,13 +100,17 @@ class AvaliacaoModel():
             else:
                 region['phrase']['observation'] = value
     
-    def save_informations(self, model1, model2, best_model, observation):
+    def save_informations(self, model1, model2, best_model, observation, option_baseline, option_model1, option_model2):
         self.save_observation(observation)
         region = self.curret_region()
         
         region['phrase']['model1'] = model1
         region['phrase']['model2'] = model2
         region['phrase']['best_model'] = best_model
+        
+        region['phrase']['option_baseline'] = option_baseline
+        region['phrase']['option_model1'] = option_model1
+        region['phrase']['option_model2'] = option_model2
 
     def curret_region(self):
         return self.data[self.current_key]

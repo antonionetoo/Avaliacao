@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from helpjson import load_json, save_json
 import json
+import collections
 
 class AvaliacaoModel():
     
@@ -25,7 +26,7 @@ class AvaliacaoModel():
         
         self.current_key = next(iter(self.data))
         self.index       = 0
-
+    
     def load_phrases(self):
         region = self.curret_region()
 
@@ -33,31 +34,32 @@ class AvaliacaoModel():
         baseline          = region['phrase']['baseline']
         predicted_model1  = region['phrase']['anon']
         predicter_model2  = region['phrase']['anonc']
-        
-        model1            = region['phrase']['model1']
-        model2            = region['phrase']['model2']
-        best_model        = region['phrase']['best_model'] 
+
+        best_model        = region['phrase']['best_model']
         
         try:
             observation  = region['phrase']['observation']
         except KeyError:
             observation  = ''
         
-        return reference_nl, baseline, predicted_model1, predicter_model2, observation, model1, model2, best_model
+        return reference_nl, baseline, predicted_model1, predicter_model2, observation, best_model
     
+    def load_information(self, region, option, default = ''):
+        return default if option not in region['phrase'] else region['phrase'][option]
+
     def load_combos(self):
         region = self.curret_region()
+
+        option_baseline      = self.load_information(region, 'option_baseline')
+        option_model1        = self.load_information(region, 'option_model1')
+        option_model2        = self.load_information(region, 'option_model2')
+
+        option_better_model1 = self.load_information(region, 'better_model1')
+        option_better_model2 = self.load_information(region, 'better_model2')
+
+        ignore               = self.load_information(region, 'ignore', default = 0)
         
-        if 'option_baseline' in region['phrase']:
-            option_baseline = region['phrase']['option_baseline']
-            option_model1   = region['phrase']['option_model1']
-            option_model2   = region['phrase']['option_model2']
-        else:
-            option_baseline = ''
-            option_model1   = ''
-            option_model2   = ''
-        
-        return option_baseline, option_model1, option_model2        
+        return ignore, option_baseline, option_model1, option_model2, option_better_model1, option_better_model2
 
     def draw_bbox(self, ax, bbox, edge_color='red', line_width =3):
         bbox_plot = mpatches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3],
@@ -83,7 +85,7 @@ class AvaliacaoModel():
         return fig
 
     def load_json(self, name_file):
-        self.data = load_json(name_file)
+        self.data = collections.OrderedDict(sorted(load_json(name_file).items()))
         self.name_file = name_file
     
     def save_json(self):
@@ -100,12 +102,14 @@ class AvaliacaoModel():
             else:
                 region['phrase']['observation'] = value
     
-    def save_informations(self, model1, model2, best_model, observation, option_baseline, option_model1, option_model2):
+    def save_informations(self, ignore, model1, model2, best_model, observation, option_baseline, option_model1, option_model2):
         self.save_observation(observation)
         region = self.curret_region()
         
-        region['phrase']['model1'] = model1
-        region['phrase']['model2'] = model2
+        region['phrase']['ignore']        = ignore
+
+        region['phrase']['better_model1'] = model1
+        region['phrase']['better_model2'] = model2
         region['phrase']['best_model'] = best_model
         
         region['phrase']['option_baseline'] = option_baseline

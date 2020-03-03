@@ -7,6 +7,7 @@ class TelaAvaliacao():
         self.window = Tk()
         self.controller = controller
         self.options_evaluate     = ['Correto', 'Incorreto', 'Parc. Correto']
+        self.options_evaluate_compare = ['Melhor', 'Igual', 'Pior']
     
     def navegation(self):
         self.btn_previous = Button(self.window, text = 'Anterior', command = self.controller.previous_example)
@@ -35,6 +36,10 @@ class TelaAvaliacao():
 
         self.txt_reference = Entry(self.window)
         self.txt_reference.grid(row = 1, column = 4, sticky = constants.W + constants.E, columnspan = 2)
+
+        self.ignore = IntVar()
+        self.check_ignore = Checkbutton(self.window, text = 'Ignorar', offvalue = 0, onvalue = 1, variable = self.ignore, command = self.controller.ignore)
+        self.check_ignore.grid(row = 1, column = 6, sticky = constants.W + constants.E)
     
     def baseline(self):
         self.lb_baseline = Label(self.window, width = 50, text = 'Baseline')
@@ -52,17 +57,12 @@ class TelaAvaliacao():
 
         self.txt_model1 = Entry(self.window)
         self.txt_model1.grid(row = 5, column = 4, sticky = constants.W + constants.E, columnspan = 2)
-        
-        self.better_model1 = IntVar()
-        self.better_model1.set(0)
-        
+                
         self.combo_model1 = ttk.Combobox(self.window, values = self.options_evaluate, state="readonly", width = 15)
         self.combo_model1.grid(row = 5, column = 6)
-        
-        self.check_model1 = Checkbutton(self.window, text = 'Melhor que o baseline', \
-            offvalue = 0, onvalue = 1, variable = self.better_model1)
-        
-        self.check_model1.grid(row = 5, column = 7)
+
+        self.combo_better_model1 = ttk.Combobox(self.window, values = self.options_evaluate_compare, state="readonly", width = 10)
+        self.combo_better_model1.grid(row = 5, column = 7)
         
     def model2(self):
         self.lb_model2 = Label(self.window, width = 50, text = 'Modelo 2 (anonc-1kk)')
@@ -70,35 +70,30 @@ class TelaAvaliacao():
 
         self.txt_model2 = Entry(self.window)
         self.txt_model2.grid(row = 7, column = 4, sticky = constants.W + constants.E, columnspan = 2)
-
-        self.better_model2 = IntVar()
-        self.better_model2.set(0)
         
         self.combo_model2 = ttk.Combobox(self.window, values = self.options_evaluate, state="readonly", width = 15)
         self.combo_model2.grid(row = 7, column = 6)
         
-        self.check_model2 = Checkbutton(self.window, text = "Melhor que o baseline", \
-                offvalue = 0, onvalue = 1, variable = self.better_model2)
-        
-        self.check_model2.grid(row = 7, column = 7)
+        self.combo_better_model2 = ttk.Combobox(self.window, values = self.options_evaluate_compare, state="readonly", width = 10)
+        self.combo_better_model2.grid(row = 7, column = 7)
         
     def options_better_model(self):    
-        self.choose_better_model = Label(self.window, text = 'Melhor modelo:', width = 15)
+        self.txt_choose_better_model = Label(self.window, text = 'Melhor modelo:', width = 15)
         #self.choose_better_model.config(font=(None, 12))
 
-        self.choose_better_model.grid(row = 8, column = 4)
+        self.txt_choose_better_model.grid(row = 8, column = 4)
         
         self.best_model = IntVar()
         self.best_model.set(0)
         
-        none_model = Radiobutton(self.window, text='Nenhum', variable = self.best_model, value = 0, width = 10)
-        none_model.grid(row = 8, column = 5)
+        self.none_model = Radiobutton(self.window, text='Nenhum', variable = self.best_model, value = 0, width = 10)
+        self.none_model.grid(row = 8, column = 5)
         
-        option_model1 = Radiobutton(self.window, text='Modelo 1', variable = self.best_model, value = 1, width = 10)
-        option_model1.grid(row = 8, column = 6)
+        self.option_model1 = Radiobutton(self.window, text='Modelo 1', variable = self.best_model, value = 1, width = 10)
+        self.option_model1.grid(row = 8, column = 6)
 
-        option_model2 = Radiobutton(self.window, text='Modelo 2', variable = self.best_model, value = 2, width = 10)
-        option_model2.grid(row = 8, column = 7)
+        self.option_model2 = Radiobutton(self.window, text='Modelo 2', variable = self.best_model, value = 2, width = 10)
+        self.option_model2.grid(row = 8, column = 7)
         
     def observation(self):
         self.lb_predita_ln = Label(self.window, width = 50, text = 'Observações')

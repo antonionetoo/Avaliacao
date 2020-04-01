@@ -33,7 +33,8 @@ class AvaliacaoModel():
         reference_nl      = region['phrase']['reference']
         baseline          = region['phrase']['baseline']
         predicted_model1  = region['phrase']['anon']
-        predicter_model2  = region['phrase']['anonc']
+        predicted_model2  = region['phrase']['anonc']
+        predicted_model3  = region['phrase']['anonc2']
 
         best_model        = region['phrase']['best_model']
         
@@ -42,7 +43,7 @@ class AvaliacaoModel():
         except KeyError:
             observation  = ''
         
-        return reference_nl, baseline, predicted_model1, predicter_model2, observation, best_model
+        return reference_nl, baseline, predicted_model1, predicted_model2, predicted_model3, observation, best_model
     
     def load_information(self, region, option, default = ''):
         return default if option not in region['phrase'] else region['phrase'][option]
@@ -53,13 +54,15 @@ class AvaliacaoModel():
         option_baseline      = self.load_information(region, 'option_baseline')
         option_model1        = self.load_information(region, 'option_model1')
         option_model2        = self.load_information(region, 'option_model2')
+        option_model3        = self.load_information(region, 'option_model3')
 
         option_better_model1 = self.load_information(region, 'better_model1')
         option_better_model2 = self.load_information(region, 'better_model2')
+        option_better_model3 = self.load_information(region, 'better_model3')
 
         ignore               = self.load_information(region, 'ignore', default = 0)
         
-        return ignore, option_baseline, option_model1, option_model2, option_better_model1, option_better_model2
+        return ignore, option_baseline, option_model1, option_model2, option_model3, option_better_model1, option_better_model2, option_better_model3
 
     def draw_bbox(self, ax, bbox, edge_color='red', line_width =3):
         bbox_plot = mpatches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3],
@@ -102,7 +105,7 @@ class AvaliacaoModel():
             else:
                 region['phrase']['observation'] = value
     
-    def save_informations(self, ignore, model1, model2, best_model, observation, option_baseline, option_model1, option_model2):
+    def save_informations(self, ignore, model1, model2, model3, best_model, observation, option_baseline, option_model1, option_model2, option_model3):
         self.save_observation(observation)
         region = self.curret_region()
         
@@ -110,11 +113,13 @@ class AvaliacaoModel():
 
         region['phrase']['better_model1'] = model1
         region['phrase']['better_model2'] = model2
+        region['phrase']['better_model3'] = model3
         region['phrase']['best_model'] = best_model
         
         region['phrase']['option_baseline'] = option_baseline
         region['phrase']['option_model1'] = option_model1
         region['phrase']['option_model2'] = option_model2
+        region['phrase']['option_model3'] = option_model3
 
     def curret_region(self):
         return self.data[self.current_key]

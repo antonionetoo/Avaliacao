@@ -21,6 +21,8 @@ class AvaliacaoModel():
         
         self.models = [['phrase_joao', 'option_model1'],
                        ['phrase_antonio', 'option_model2']]
+        
+        self.best_model = ['Nenhum', 'Modelo 1', 'Modelo 2']
     
     def build_number_to_positions(self):
         for i, k in enumerate(self.data.keys()):
@@ -38,8 +40,8 @@ class AvaliacaoModel():
 
         best_model = ''
         if 'best_model' in region:
-            best_model        = region['best_model']
-                    
+            best_model = self.best_model_to_display(region['best_model'])
+                                
         try:
             observation  = region['observation']
         except KeyError:
@@ -99,14 +101,27 @@ class AvaliacaoModel():
             else:
                 region['observation'] = value
     
+    def index_to_best_model(self, best_model_selected):
+        if best_model_selected == 'Nenhum':
+            return 'Nenhum'
+        
+        return self.models[int(best_model_selected[-1]) - 1][0].split('_')[1]
+
+    def best_model_to_display(self, best_model):
+        if best_model == 'Nenhum':
+            return best_model
+        
+        return 'Modelo {}'.format({m[0].split('_')[1]:i for i, m in enumerate(self.models)}[best_model]+1)
+        
     def save_informations(self, best_model, observation, option_model1, option_model2):
         self.save_observation(observation)
         region = self.curret_region()
+
+        region['best_model']  = self.index_to_best_model(best_model)
+        #region['best_model'] = best_model
         
-        region['best_model'] = best_model
-        
-        region['option_model1'] = option_model1
-        region['option_model2'] = option_model2
+        region[self.models[0][1]] = option_model1
+        region[self.models[1][1]] = option_model2
 
     def curret_region(self):
         return self.data[self.current_key]

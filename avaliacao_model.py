@@ -4,6 +4,7 @@ import matplotlib.patches as mpatches
 from helpjson import load_json, save_json
 import json
 import collections
+import random
 
 class AvaliacaoModel():
     
@@ -17,6 +18,9 @@ class AvaliacaoModel():
         self.index        = 0
 
         self.name_file = None
+        
+        self.models = [['phrase_joao', 'option_model1'],
+                       ['phrase_antonio', 'option_model2']]
     
     def build_number_to_positions(self):
         for i, k in enumerate(self.data.keys()):
@@ -29,8 +33,8 @@ class AvaliacaoModel():
     def load_phrases(self):
         region = self.curret_region()
         
-        predicted_model1  = region['phrase_joao']
-        predicted_model2  = region['phrase_antonio']
+        predicted_model1  = region[self.models[0][0]]
+        predicted_model2  = region[self.models[1][0]]
 
         best_model = ''
         if 'best_model' in region:
@@ -49,8 +53,8 @@ class AvaliacaoModel():
     def load_combos(self):
         region = self.curret_region()
 
-        option_model1        = self.load_information(region, 'option_model1')
-        option_model2        = self.load_information(region, 'option_model2')
+        option_model1        = self.load_information(region, self.models[0][1])
+        option_model2        = self.load_information(region, self.models[1][1])
         
         return option_model1, option_model2
 
@@ -108,25 +112,22 @@ class AvaliacaoModel():
         return self.data[self.current_key]
     
     def go_to_key(self, key):
+        random.shuffle(self.models)
         assert key in self.key_to_index
         
         self.index = self.key_to_index[key]
         self.current_key = key
     
     def go_to_instance(self, number_instance):
+        random.shuffle(self.models)
         assert number_instance >= 0 and number_instance <= len(self.data)-1
     
         self.current_key = list(self.data.keys())[number_instance]
         self.index = number_instance
 
     def previous_example(self):
-        try:
-            self.go_to_instance(self.index - 1)
-        except:
-            pass
+        self.go_to_instance(self.index - 1)
 
     def next_instance(self):
-        try:
-            self.go_to_instance(self.index + 1)
-        except:
-            pass
+        self.go_to_instance(self.index + 1)
+

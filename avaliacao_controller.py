@@ -90,15 +90,19 @@ class ControllerAvaliacao():
         
     def previous_example(self):
         self.save_informations()
-        self.model.previous_example()
-
-        self.load_informations()
+        try:
+            self.model.previous_example()
+            self.load_informations()
+        except AssertionError:
+            messagebox.showinfo("Erro", "Não existe mais exemplos")
     
     def next_instance(self):
         self.save_informations()
-        self.model.next_instance()
-
-        self.load_informations()
+        try:
+            self.model.next_instance()
+            self.load_informations()
+        except AssertionError:
+            messagebox.showinfo("Erro", "Não existe mais exemplos")
 
     def start(self):
         self.view.show_interface()

@@ -1,10 +1,12 @@
-import skimage.io as io
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from helpjson import load_json, save_json
-import json
 import collections
 import random
+
+import skimage.io as io
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+from helpjson import load_json, save_json
 
 class AvaliacaoModel():
     
@@ -19,10 +21,13 @@ class AvaliacaoModel():
 
         self.name_file = None
         
-        self.models = [['phrase_joao', 'option_model1'],
-                       ['phrase_antonio', 'option_model2']]
+        self.models = {0: ['phrase_joao', 'option_joao'],
+                       1: ['phrase_antonio', 'option_antonio'],
+                       2: ['baseline_joao', 'option_bjoao'],
+                       3: ['baseline_antonio', 'option_bantonio'],}
         
-        self.best_model = ['Nenhum', 'Modelo 1', 'Modelo 2']
+        self.order_models = [0, 1, 2, 3]
+        self.best_model = ['Nenhum', 'Modelo 1', 'Modelo 2', 'Modelo 3', 'Modelo 4']
     
     def build_number_to_positions(self):
         for i, k in enumerate(self.data.keys()):
@@ -32,22 +37,32 @@ class AvaliacaoModel():
         self.current_key = next(iter(self.data))
         self.index       = 0
     
+    def order(self, n):
+        return self.order_models[n]
+    
+    def name_phrase(self, name):
+        return self.models[self.order(name)][0]
+
+    def name_option_by_index(self, index):
+        return self.models[self.order_models[index]][1]
+
+    def name_option(self, name):
+        return (name if name == 'Nenhum' else self.name_option_by_index(int(name[-1]) - 1 ))
+    
     def load_phrases(self):
         region = self.curret_region()
         
-        predicted_model1  = region[self.models[0][0]]
-        predicted_model2  = region[self.models[1][0]]
-
-        best_model = ''
-        if 'best_model' in region:
-            best_model = self.best_model_to_display(region['best_model'])
+        predicted_model1 = region[self.name_phrase(0)]
+        predicted_model2 = region[self.name_phrase(1)]
+        predicted_model3 = region[self.name_phrase(2)]
+        predicted_model4 = region[self.name_phrase(3)]
                                 
         try:
-            observation  = region['observation']
+            observation = region['observation']
         except KeyError:
-            observation  = ''
+            observation = ''
         
-        return predicted_model1, predicted_model2, observation, best_model
+        return predicted_model1, predicted_model2, predicted_model3, predicted_model4, observation
     
     def load_information(self, region, option, default = ''):
         return default if option not in region else region[option]
@@ -55,10 +70,17 @@ class AvaliacaoModel():
     def load_combos(self):
         region = self.curret_region()
 
-        option_model1        = self.load_information(region, self.models[0][1])
-        option_model2        = self.load_information(region, self.models[1][1])
+        option_model1  = self.load_information(region, self.name_option_by_index(0))
+        option_model2  = self.load_information(region, self.name_option_by_index(1))
+        option_model3  = self.load_information(region, self.name_option_by_index(2))
+        option_model4  = self.load_information(region, self.name_option_by_index(3))
         
-        return option_model1, option_model2
+        best_model = ''
+        if 'best_model' in region and not region['best_model'] == 'Nenhum':
+            index = [i for i, m in enumerate(self.models.values()) if m[1] == region['best_model']][0]
+            best_model = 'Modelo ' + str([e for e, o in enumerate(self.order_models) if o == index][0] + 1)
+
+        return option_model1, option_model2, option_model3, option_model4, best_model
 
     def draw_bbox(self, ax, bbox, edge_color='red', line_width =3):
         bbox_plot = mpatches.Rectangle((bbox[0], bbox[1]), bbox[2], bbox[3],
@@ -86,6 +108,8 @@ class AvaliacaoModel():
     def load_json(self, name_file):
         self.data = collections.OrderedDict(sorted(load_json(name_file).items()))
         self.name_file = name_file
+        
+        self.build_number_to_positions()
     
     def save_json(self):
         save_json(self.name_file, self.data)
@@ -100,41 +124,30 @@ class AvaliacaoModel():
                 region['observation'] = ''
             else:
                 region['observation'] = value
-    
-    def index_to_best_model(self, best_model_selected):
-        if best_model_selected == 'Nenhum':
-            return 'Nenhum'
         
-        return self.models[int(best_model_selected[-1]) - 1][0].split('_')[1]
-
-    def best_model_to_display(self, best_model):
-        if best_model == 'Nenhum':
-            return best_model
-        
-        return 'Modelo {}'.format({m[0].split('_')[1]:i for i, m in enumerate(self.models)}[best_model]+1)
-        
-    def save_informations(self, best_model, observation, option_model1, option_model2):
+    def save_informations(self, best_model, observation, option_model1, option_model2, option_model3, option_model4):
         self.save_observation(observation)
         region = self.curret_region()
 
-        region['best_model']  = self.index_to_best_model(best_model)
-        #region['best_model'] = best_model
+        region['best_model']  = self.name_option(best_model)
         
-        region[self.models[0][1]] = option_model1
-        region[self.models[1][1]] = option_model2
+        region[self.name_option_by_index(0)] = option_model1
+        region[self.name_option_by_index(1)] = option_model2
+        region[self.name_option_by_index(2)] = option_model3
+        region[self.name_option_by_index(3)] = option_model4
 
     def curret_region(self):
         return self.data[self.current_key]
     
     def go_to_key(self, key):
-        random.shuffle(self.models)
+        random.shuffle(self.order_models)
         assert key in self.key_to_index
         
         self.index = self.key_to_index[key]
         self.current_key = key
     
     def go_to_instance(self, number_instance):
-        random.shuffle(self.models)
+        random.shuffle(self.order_models)
         assert number_instance >= 0 and number_instance <= len(self.data)-1
     
         self.current_key = list(self.data.keys())[number_instance]
